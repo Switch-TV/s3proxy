@@ -316,13 +316,17 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
 
     @Override
     public BlobAccess getBlobAccess(String container, String name) {
-        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet" ));
+        if ( isBlobLocal(container, name) ) {
+            return BlobAccess.PUBLIC_READ;
+        }
+        else {
+            return upstreamBlobStore.getBlobAccess(container, name);
+        }
     }
 
     @Override
-    public void setBlobAccess(String container, String name,
-                              BlobAccess access) {
-        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet" ));
+    public void setBlobAccess(String container, String name, BlobAccess access) {
+        return;
     }
 
     @Override
