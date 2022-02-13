@@ -33,9 +33,10 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 
-
-
-/** This class is a BlobStore wrapper which tracks write operations in the local filesystem. */
+/**
+ * This class is a BlobStore wrapper which tracks write operations in the local
+ * filesystem.
+ */
 final class OverlayBlobStore extends ForwardingObject implements BlobStore {
 
     private static final Logger logger = LoggerFactory.getLogger(
@@ -99,7 +100,7 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
 
     @Override
     public boolean containerExists(String container) {
-        if(delegate().containerExists(container)){
+        if (delegate().containerExists(container)) {
             return true;
         } else {
             return delegateUpstream().containerExists(container);
@@ -108,13 +109,13 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
 
     @Override
     public boolean createContainerInLocation(Location location,
-                                             String container) {
+            String container) {
         return delegate().createContainerInLocation(location, container);
     }
 
     @Override
     public boolean createContainerInLocation(Location location,
-                                             String container, CreateContainerOptions options) {
+            String container, CreateContainerOptions options) {
         // TODO: Simulate error when creating a bucket that already exists
         return delegate().createContainerInLocation(location, container);
     }
@@ -125,21 +126,20 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
     }
 
     @Override
-    public void setContainerAccess(String container, ContainerAccess
-            containerAccess) {
+    public void setContainerAccess(String container, ContainerAccess containerAccess) {
         delegate().setContainerAccess(container, containerAccess);
     }
 
     @Override
     public PageSet<? extends StorageMetadata> list(String container) {
-        if(delegate().containerExists(container)){
+        if (delegate().containerExists(container)) {
             PageSet<StorageMetadata> localSet = (PageSet<StorageMetadata>) delegate().list(container);
-            if(delegateUpstream().containerExists(container)){
+            if (delegateUpstream().containerExists(container)) {
                 PageSet<StorageMetadata> upstreamSet = (PageSet<StorageMetadata>) delegateUpstream().list(container);
                 return mergeAndFilterList(localSet, upstreamSet);
             }
             return localSet;
-        } else if(delegateUpstream().containerExists(container)) {
+        } else if (delegateUpstream().containerExists(container)) {
             return delegateUpstream().list(container);
         } else {
             return null;
@@ -148,16 +148,17 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
 
     @Override
     public PageSet<? extends StorageMetadata> list(String container,
-                                                   ListContainerOptions options) {
+            ListContainerOptions options) {
 
-        if(delegate().containerExists(container)){
+        if (delegate().containerExists(container)) {
             PageSet<StorageMetadata> localSet = (PageSet<StorageMetadata>) delegate().list(container, options);
-            if(delegateUpstream().containerExists(container)){
-                PageSet<StorageMetadata> upstreamSet = (PageSet<StorageMetadata>) delegateUpstream().list(container, options);
+            if (delegateUpstream().containerExists(container)) {
+                PageSet<StorageMetadata> upstreamSet = (PageSet<StorageMetadata>) delegateUpstream().list(container,
+                        options);
                 return mergeAndFilterList(localSet, upstreamSet);
             }
             return localSet;
-        } else if(delegateUpstream().containerExists(container)) {
+        } else if (delegateUpstream().containerExists(container)) {
             return delegateUpstream().list(container, options);
         } else {
             return null;
@@ -166,42 +167,42 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
 
     @Override
     public void clearContainer(String container) {
-        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet" ));
+        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet"));
     }
 
     @Override
     public void clearContainer(String container, ListContainerOptions options) {
-        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet" ));
+        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet"));
     }
 
     @Override
     public void deleteContainer(String container) {
-        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet" ));
+        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet"));
     }
 
     @Override
     public boolean deleteContainerIfEmpty(String container) {
-        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet" ));
+        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet"));
     }
 
     @Override
     public boolean directoryExists(String container, String directory) {
-        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet" ));
+        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet"));
     }
 
     @Override
     public void createDirectory(String container, String directory) {
-        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet" ));
+        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet"));
     }
 
     @Override
     public void deleteDirectory(String container, String directory) {
-        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet" ));
+        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet"));
     }
 
     @Override
     public boolean blobExists(String container, String name) {
-        if(delegate().blobExists(container, name)){
+        if (delegate().blobExists(container, name)) {
             return true;
         } else {
             return delegateUpstream().blobExists(container, name);
@@ -209,10 +210,10 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
     }
 
     private boolean ensureLocalContainerExistsIfUpstreamDoes(String container) {
-        if(delegate().containerExists(container)){
+        if (delegate().containerExists(container)) {
             return true;
         } else {
-            if(delegateUpstream().containerExists(container)){
+            if (delegateUpstream().containerExists(container)) {
                 return delegate().createContainerInLocation(null, container);
             }
         }
@@ -223,7 +224,7 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
     public String putBlob(String containerName, Blob blob) {
         ensureLocalContainerExistsIfUpstreamDoes(containerName);
         // TODO: Simulate error when file already exists in upstream bucket
-        if(isBlobMasked(containerName, blob.getMetadata().getName())){
+        if (isBlobMasked(containerName, blob.getMetadata().getName())) {
             unmaskBlob(containerName, blob.getMetadata().getName());
         }
         return delegate().putBlob(containerName, blob);
@@ -231,10 +232,10 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
 
     @Override
     public String putBlob(String containerName, Blob blob,
-                          PutOptions putOptions) {
+            PutOptions putOptions) {
         ensureLocalContainerExistsIfUpstreamDoes(containerName);
         // TODO: Simulate error when file already exists in upstream bucket
-        if(isBlobMasked(containerName, blob.getMetadata().getName())){
+        if (isBlobMasked(containerName, blob.getMetadata().getName())) {
             unmaskBlob(containerName, blob.getMetadata().getName());
         }
         return delegate().putBlob(containerName, blob, putOptions);
@@ -242,20 +243,20 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
 
     @Override
     public String copyBlob(String fromContainer, String fromName, String toContainer, String toName,
-                           CopyOptions options) {
-        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet" ));
+            CopyOptions options) {
+        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet"));
     }
 
     @Override
     public BlobMetadata blobMetadata(String container, String name) {
         // TODO: Find a better way to generate a 'not found error'
-        if(isBlobMasked(container, name)){
+        if (isBlobMasked(container, name)) {
             return delegate().blobMetadata(container, "oasiguaogiyhgoiayhsgdogDsfsd");
         }
 
-        if(isBlobLocal(container, name)){
+        if (isBlobLocal(container, name)) {
             return delegate().blobMetadata(container, name);
-        } else if(delegateUpstream().blobExists(container, name)){
+        } else if (delegateUpstream().blobExists(container, name)) {
             return delegateUpstream().blobMetadata(container, name);
         } else {
             // Returns a "Not Found" error
@@ -263,22 +264,24 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
         }
     }
 
-    private Blob getBlobMasked(String containerName, String blobName, GetOptions getOptions){
-        if(isBlobMasked(containerName, blobName)){
+    private Blob getBlobMasked(String containerName, String blobName, GetOptions getOptions) {
+        if (isBlobMasked(containerName, blobName)) {
             // TODO: Simlulate an error without doing something like this
             return delegate().getBlob(containerName, "aslkghbfdalkbjhdblkdfhgbdfb");
         }
 
         BlobStore sourceStore = null;
-        if(isBlobLocal(containerName, blobName)){
+        if (isBlobLocal(containerName, blobName)) {
             sourceStore = delegate();
-            logger.debug("[ensureBlobIsLocal]: Blob " + containerName + "/" + blobName + " returned from local storage");
+            logger.debug(
+                    "[ensureBlobIsLocal]: Blob " + containerName + "/" + blobName + " returned from local storage");
         } else {
             sourceStore = delegateUpstream();
-            logger.debug("[ensureBlobIsLocal]: Blob " + containerName + "/" + blobName + " returned from remote storage");
+            logger.debug(
+                    "[ensureBlobIsLocal]: Blob " + containerName + "/" + blobName + " returned from remote storage");
         }
 
-        if(getOptions == null){
+        if (getOptions == null) {
             return sourceStore.getBlob(containerName, blobName);
         } else {
             return sourceStore.getBlob(containerName, blobName, getOptions);
@@ -292,14 +295,14 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
 
     @Override
     public Blob getBlob(String containerName, String blobName,
-                        GetOptions getOptions) {
+            GetOptions getOptions) {
         return getBlobMasked(containerName, blobName, getOptions);
     }
 
     @Override
     public void removeBlob(String container, String name) {
         maskBlob(container, name);
-        if(delegate().blobExists(container, name)){
+        if (delegate().blobExists(container, name)) {
             delegate().removeBlob(container, name);
         }
     }
@@ -308,7 +311,7 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
     public void removeBlobs(String container, Iterable<String> iterable) {
         for (String name : iterable) {
             maskBlob(container, name);
-            if(delegate().blobExists(container, name)){
+            if (delegate().blobExists(container, name)) {
                 delegate().removeBlob(container, name);
             }
         }
@@ -316,10 +319,9 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
 
     @Override
     public BlobAccess getBlobAccess(String container, String name) {
-        if ( isBlobLocal(container, name) ) {
+        if (isBlobLocal(container, name)) {
             return BlobAccess.PUBLIC_READ;
-        }
-        else {
+        } else {
             return upstreamBlobStore.getBlobAccess(container, name);
         }
     }
@@ -388,12 +390,12 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
 
     @Override
     public void downloadBlob(String container, String name, File destination) {
-        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet" ));
+        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet"));
     }
 
     @Override
     public void downloadBlob(String container, String name, File destination, ExecutorService executor) {
-        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet" ));
+        throw new RuntimeException(new S3Exception(S3ErrorCode.INVALID_REQUEST, "Not Implemented Yet"));
     }
 
     @Override
@@ -406,25 +408,24 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
         return delegate().streamBlob(container, name, executor);
     }
 
-
     // Returns true if the provided Metadata is for a Maskfile
-    private boolean isBlobMaskFile(StorageMetadata sm){
+    private boolean isBlobMaskFile(StorageMetadata sm) {
         return sm.getName().endsWith(this.maskSuffix);
     }
 
     // Returns the name of the Blob that a Maskfile belongs to
-    private String getMaskedBlobFileName(String maskFileName){
+    private String getMaskedBlobFileName(String maskFileName) {
         return maskFileName.replace(this.maskSuffix, "");
     }
 
     // Returns the Maskfile name for the provided Blob name
-    private String getBlobMaskFileName(String name){
+    private String getBlobMaskFileName(String name) {
         return name + this.maskSuffix;
     }
 
     // Returns true if a Maskfile exists for the provided Blob
-    private boolean isBlobMasked(String container, String name){
-        if(delegate().containerExists(container)){
+    private boolean isBlobMasked(String container, String name) {
+        if (delegate().containerExists(container)) {
             return delegate().blobExists(container, getBlobMaskFileName(name));
         } else {
             return false;
@@ -432,12 +433,12 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
     }
 
     // Creates a Maskfile for the specified Blob
-    private void maskBlob(String container, String name){
-        if(isBlobMasked(container, name)){
+    private void maskBlob(String container, String name) {
+        if (isBlobMasked(container, name)) {
             // If it's already masked, no need to do anything.
             logger.debug("[maskBlob]: Blob " + container + "/" + name + " already masked");
             return;
-        } else if(delegateUpstream().blobExists(container, name)) {
+        } else if (delegateUpstream().blobExists(container, name)) {
             // If it exists upstream, create a maskFile
             BlobBuilder blobBuilder = blobBuilder(getBlobMaskFileName(name)).payload("");
             delegate().putBlob(container, blobBuilder.build());
@@ -449,8 +450,8 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
     }
 
     // Removes the Maskfile for the specified Blob
-    private void unmaskBlob(String container, String name){
-        if(isBlobMasked(container, name)){
+    private void unmaskBlob(String container, String name) {
+        if (isBlobMasked(container, name)) {
             delegate().removeBlob(container, getBlobMaskFileName(name));
             logger.debug("[unmaskBlob]: Blob " + container + "/" + name + " successfully unmasked");
             return;
@@ -460,24 +461,26 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
     }
 
     // Returns true if the specified Blob is available in the local backend
-    private boolean isBlobLocal(String container, String name){
-        if(delegate().containerExists(container)) {
+    private boolean isBlobLocal(String container, String name) {
+        if (delegate().containerExists(container)) {
             return delegate().blobExists(container, name);
         } else {
             return false;
         }
     }
 
-    private PageSet<? extends StorageMetadata> mergeAndFilterList(PageSet<StorageMetadata> localSet, PageSet<StorageMetadata> upstreamSet){
+    private PageSet<? extends StorageMetadata> mergeAndFilterList(PageSet<StorageMetadata> localSet,
+            PageSet<StorageMetadata> upstreamSet) {
         List<String> maskedBlobNames = new ArrayList<String>();
         List<String> localBlobNames = new ArrayList<String>();
 
         // TODO: This is a pretty terrible solution performance-wide
         //
-        // Build a list of masked blobs and remove the maskfiles themselves from the localSet
+        // Build a list of masked blobs and remove the maskfiles themselves from the
+        // localSet
         for (Iterator<StorageMetadata> iterator = localSet.iterator(); iterator.hasNext();) {
             StorageMetadata sm = iterator.next();
-            if(isBlobMaskFile(sm)){
+            if (isBlobMaskFile(sm)) {
                 String maskedFile = getMaskedBlobFileName(sm.getName());
                 logger.info("[mergeAndFilterList]: Blob " + sm.getName() + " is a maskfile for " + maskedFile);
                 maskedBlobNames.add(maskedFile);
@@ -487,14 +490,16 @@ final class OverlayBlobStore extends ForwardingObject implements BlobStore {
             }
         }
 
-        // Remove any masked files from the upstream list, and any files that exist in local storage
+        // Remove any masked files from the upstream list, and any files that exist in
+        // local storage
         for (Iterator<StorageMetadata> iterator = upstreamSet.iterator(); iterator.hasNext();) {
             StorageMetadata sm = iterator.next();
-            if(maskedBlobNames.contains(sm.getName())){
+            if (maskedBlobNames.contains(sm.getName())) {
                 logger.warn("[mergeAndFilterList]: Blob " + sm.getName() + " is masked, removing from list.");
                 iterator.remove();
-            } else if(localBlobNames.contains(sm.getName())){
-                logger.info("[mergeAndFilterList]: Blob " + sm.getName() + " exists both locally and upstream. Using local copy.");
+            } else if (localBlobNames.contains(sm.getName())) {
+                logger.info("[mergeAndFilterList]: Blob " + sm.getName()
+                        + " exists both locally and upstream. Using local copy.");
                 iterator.remove();
             }
         }
